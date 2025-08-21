@@ -12,6 +12,7 @@ import AuthProvider from '@/components/providers/AuthProvider';
 export default function ClientLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isAuthPage = pathname.startsWith('/auth');
+    const isdashPage = pathname.startsWith('/dashboard');
 
   return (
     <SessionProvider>
@@ -25,9 +26,9 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
       ) : (
         // Layout for other pages (with Navbar/Footer)
         <div className="min-h-screen flex flex-col">
-          <Navbar />
+         {!isdashPage && <Navbar />}
           <main className="flex-1">{children}</main>
-          <Footer />
+          {!isdashPage && <Footer />}
           <Toaster position="top-right" />
         </div>
       )}

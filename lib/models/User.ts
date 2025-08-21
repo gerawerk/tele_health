@@ -1,43 +1,56 @@
-// lib/models/userModel.ts
-import mongoose, { Schema, Document, model, models } from 'mongoose';
+import mongoose from 'mongoose';
 
-export interface IUser extends Document {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password?: string;
-  gender: 'male' | 'female' | 'other';
-  dateOfBirth: Date;
-  role: 'doctor' | 'patient';
-  isVerified: boolean;
-  verificationDocuments: string[];
-  profileImage?: string;
-  specialization?: string;
-  experience?: number;
-  rating?: number;
-  totalReviews?: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
+const availabilitySchema = new mongoose.Schema({
+  day: { type: String, required: true }, // e.g. 'Monday'
+  timeSlots: [{ start: String, end: String }], // e.g. 10:00 - 12:00
+});
 
-const UserSchema: Schema = new Schema(
-  {
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String },
-    gender: { type: String, enum: ['male', 'female', 'other'], required: false },
-    dateOfBirth: { type: Date, required: false },
-    role: { type: String, enum: ['doctor', 'patient'], required: false, default: 'patient' },
-    isVerified: { type: Boolean, default: false },
-    verificationDocuments: { type: [String], default: [] },
-    profileImage: { type: String },
-    specialization: { type: String },
-    experience: { type: Number },
-    rating: { type: Number },
-    totalReviews: { type: Number, default: 0 },
+const userSchema = new mongoose.Schema({
+  role: {
+    type: String,
+    enum: ['doctor', 'patient', 'admin'],
+    required: true,
   },
-  { timestamps: true }
-);
 
-export const User = models.User || model<IUser>('User', UserSchema);
+  // Common
+  name: { type: String, required: true },
+  email: { type: String, unique: true, required: true },
+  password: { type: String },
+  profileImage: { type: String },
+  gender: { type: String, enum: ['male', 'female', 'other'] },
+  phone: { type: String },
+  location: {
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: 'Point',
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      index: '2dsphere',
+    },
+    address: { type: String },
+    city: { type: String },
+  },
+
+  // Doctor-specific
+  specialization: { type: String },
+  bio: { type: String },
+  averageRating: { type: Number, default: 0 },
+  availability: [availabilitySchema],
+  licenseNumber: { type: String },
+
+  // Patient-specific
+  age: { type: Number },
+  medicalHistory: [{ condition: String, date: Date }],
+  allergies: [String],
+  emergencyContact: {
+    name: String,
+    phone: String,
+    relation: String,
+  },
+
+  createdAt: { type: Date, default: Date.now },
+});
+
+export default mongoose.models.User || mongoose.model('User', userSchema);
